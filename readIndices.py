@@ -13,16 +13,19 @@ import pandas as pd
 from datetime import datetime
 
 
-class readIndices():
-    def __init__(self, url):
+class readStockData():
+    """ this class reads stock data from url = 'https://www.bankier.pl/gielda/notowania/akcje' 
+        it checks if required data is already pickled in local folder
+        if so, it reads pickle
+        if not, it reads from website and pickles it
+    
+     """
+    def __init__(self):
         """  date   """
-        self.url = url
-
+        self.url = 'https://www.bankier.pl/gielda/notowania/akcje'
         self.date = datetime.today().strftime('%Y-%m-%d')
-        #self.date = date
 
-
-        self.unpickle()
+        self.getData()
 
     def readURL(self):
         def simple_get(url = self.url):
@@ -54,12 +57,7 @@ class readIndices():
 
 
         def log_error(e):
-            """
-            It is always a good idea to log errors. 
-            This function just prints them, but you can
-            make it do anything.
-            """
-            print(e)
+            self.error = e
 
         a = simple_get()
         my_json = a.decode('utf8')
@@ -88,23 +86,22 @@ class readIndices():
             index += 1
         name = './{}.pkl'.format(self.date)
         df.to_pickle(name)
+        self.data = df
 
-    def unpickle(self):
+    def getData(self):
         try:
             name = './{}.pkl'.format(self.date)
-            self.unpickled_df = pd.read_pickle(name)
+            self.data = pd.read_pickle(name)
         except FileNotFoundError:
             self.readURL()
-            self.unpickle()
+            
 
     def printSummary(self):
-        print(self.unpickled_df)  
-        #for i in range (len(self.unpickled_df)):
-        
-            #print('{}\t{}\t{}'.format(self.unpickled_df['nazwa'][i], self.unpickled_df['kurs'][i], self.unpickled_df['zmianap'][i]))
+        print(self.data)  
 
 
 
-url = 'https://www.bankier.pl/gielda/notowania/akcje'
+
+
 case = Analysis(url)
 case.printSummary()
