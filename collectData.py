@@ -1,0 +1,1 @@
+from readIndices import readStockdata

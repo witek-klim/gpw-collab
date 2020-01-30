@@ -24,7 +24,6 @@ class readStockData():
         """  date   """
         self.url = 'https://www.bankier.pl/gielda/notowania/akcje'
         self.date = datetime.today().strftime('%Y-%m-%d')
-
         self.getData()
 
     def readURL(self):
@@ -103,5 +102,6 @@ class readStockData():
 
 
 
-case = Analysis(url)
-case.printSummary()
+case = readStockData()
+data = case.data
+print(data)
