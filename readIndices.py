@@ -78,7 +78,6 @@ class readStockData():
             zmianap = float(temp[i+5].replace('>','<').split('<')[1].replace(',','.').replace('&nbsp;','').replace('%',''))
             transakcje = float(temp[i+7].replace('>','<').split('<')[1].replace(',','.').replace('&nbsp;',''))
             obrot = float(temp[i+9].replace('>','<').split('<')[1].replace(',','.').replace('&nbsp;',''))
-            dftemp = pd.DataFrame({'nazwa': name, 'kurs': kurs, 'zmiana':zmiana, 'transakcje': transakcje, 'obrot': obrot}, index = [index])
             
             dftemp2 = pd.DataFrame([ [name,  kurs, zmiana,zmianap, transakcje, obrot]], columns = ['nazwa', 'kurs', 'zmiana', 'zmianap', 'transakcje', 'obrot'])
             df = df.append(dftemp2)
@@ -97,6 +96,7 @@ class readStockData():
 
     def printSummary(self):
         print(self.data)  
+        print("")
 
 
 
