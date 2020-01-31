@@ -9,9 +9,11 @@ class collectData():
         """ date in format 'dd-mm-yyyy'  """
         self.fromDate = fromDate
         self.toDate = toDate if toDate!= None else datetime.today().strftime('%d-%m-%Y')
-        
+        self.dataPath = './data/'
     def findRequiredDays(self):
         self.days = [] # list of days for which data is to be collected in standard dd-mm-yyyy format
-        
 
+    def collect(self):
+        for day in self.days:
+            
         
