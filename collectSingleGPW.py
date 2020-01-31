@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime
+import pandas as pd
             
 class CollectSingleGPW():
     def __init__(self, date=None):
@@ -35,4 +36,4 @@ class CollectSingleGPW():
             print('collected data from web for date: {}'.format(self.date))
     
        
-        
+a = CollectSingleGPW()
