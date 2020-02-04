@@ -9,14 +9,17 @@ class CollectData():
         """ date in format 'dd-mm-yyyy'  """
         self.fromYear = fromYear
         self.toDate = toDate if toDate!= None else datetime.today().strftime('%d-%m-%Y')
-        self.storepath = r'C:/Users/wk5521/Documents/gpwdata/'
+        path = os.getcwd()
+        self.storepath = path + '/gpwdata/'
+        #self.storepath = r'C:/Users/wk5521/Documents/gpwdata/'
         self.days = []
         self.findRequiredDays()
         self.collect()
         
     def findRequiredDays(self):        
          # list of days for which data is to be collected in standard dd-mm-yyyy format
-
+         # used to collect data and save to pickle
+         
         def compareDays(d1, d2):
             if int(d1[-4:]) > int(d2[-4:]):
                 return True
@@ -42,9 +45,21 @@ class CollectData():
                     if compareDays(self.days[-1], self.toDate):
                         break 
 
-    def collect(self):
-        """ elements is a list containing required data to be returned, e.g.: ['name', 'closing']  """
-        for date in self.days:
-            CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True)
-            
+    def collect(self, option, company = None, indices = 'all'):
+        """ indices is a list containing required data to be returned, e.g.: ['name', 'closing']  """
+
+        columns = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True).columns
+        
+        def runcollect():
+            for date in self.days:
+                temp = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True)
+                names = temp.values[:,0]
+                vals = temp.values[:,1:]
+
+
+        if option == 'name':
+            assert type(company) == str, 'error- company name not provided'
+            print('collecting data for company {}'.format(company))
+
+        
 
