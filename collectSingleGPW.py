@@ -36,14 +36,14 @@ class CollectSingleGPW():
         """  collect data from web  """    
         myfile = requests.get(self.url)
         data = myfile.content.split(b'section')[7].split(b'<td class="left">')
-        df = pd.DataFrame({'name': [], 'opening': [], 'maximum':[], 'minimum':[],'closing':[], 'chamge_percent':[]})
+        df = pd.DataFrame({'name': [], 'opening': [], 'maximum':[], 'minimum':[],'closing':[], 'change_percent':[]})
         for i in range(1,len(data)):
             temp = data[i].replace(b' ', b'').replace(b'\t', b'').replace(b'&nbsp;',b'').replace(b'</td>\n', b'').replace(b',', b'.').split(b'<tdclass="text-right">')
             name, opening, maximum, minimum, closing, change_percent = temp[0].decode("utf-8") , float(temp[2]), float(temp[3]), float(temp[4]), float(temp[5]), float(temp[6])
             dftemp = pd.DataFrame([[name, opening, maximum, minimum, closing, change_percent]],
-                                    columns = ['name', 'opening', 'maximum', 'minimum','closing', 'chamge_percent'])
+                                    columns = ['name', 'opening', 'maximum', 'minimum','closing', 'change_percent'])
             df = df.append(dftemp)
-        self.data = df
+        self.data = df.set_index('name')
     
     def checkData(self):
         """ check data for correctness """

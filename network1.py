@@ -8,8 +8,9 @@ class Network1():
         print('creating Network1')
 
 
-
-if __name__== "__main":
+if __name__== "__main__":
     network = Network1()
+
+import tensorflow_hub
 
 

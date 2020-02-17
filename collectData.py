@@ -2,10 +2,11 @@ import os
 import matplotlib
 from collectSingleGPW import CollectSingleGPW
 from datetime import datetime
+import numpy as np
 
 class CollectData():
     """ collect data for specified time regime """
-    def __init__(self, fromYear, toDate = None):
+    def __init__(self, fromYear, company, toDate = None):
         """ date in format 'dd-mm-yyyy'  """
         self.fromYear = fromYear
         self.toDate = toDate if toDate!= None else datetime.today().strftime('%d-%m-%Y')
@@ -45,21 +46,20 @@ class CollectData():
                     if compareDays(self.days[-1], self.toDate):
                         break 
 
-    def collect(self, option, company = None, indices = 'all'):
+    def collect(self, company = None, indices = 'all'):
         """ indices is a list containing required data to be returned, e.g.: ['name', 'closing']  """
 
-        columns = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True).columns
+        #columns = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True).columns
+        values = np.zeros(len(self.days))
+        #def runcollect():
+        i = 0
+        for date in self.days:
+            print(f'collecting for {date}')
+            singleGPW = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True)
+            if singleGPW.checkData():
+                values[i] = singleGPW.data.loc[company, 'closing']
+
+        self.values = values
         
-        def runcollect():
-            for date in self.days:
-                temp = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True)
-                names = temp.values[:,0]
-                vals = temp.values[:,1:]
-
-
-        if option == 'name':
-            assert type(company) == str, 'error- company name not provided'
-            print('collecting data for company {}'.format(company))
-
         
 
