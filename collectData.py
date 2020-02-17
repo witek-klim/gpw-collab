@@ -15,7 +15,7 @@ class CollectData():
         #self.storepath = r'C:/Users/wk5521/Documents/gpwdata/'
         self.days = []
         self.findRequiredDays()
-        self.collect()
+        self.collect(company = company)
         
     def findRequiredDays(self):        
          # list of days for which data is to be collected in standard dd-mm-yyyy format
@@ -54,11 +54,12 @@ class CollectData():
         #def runcollect():
         i = 0
         for date in self.days:
-            print(f'collecting for {date}')
-            singleGPW = CollectSingleGPW(date, save2pickle = True, storePath = self.storepath, verbose = True)
+            print(f'collecting for {date}, for {company}')
+            singleGPW = CollectSingleGPW(date, storePath = self.storepath, verbose = True)
             if singleGPW.checkData():
-                values[i] = singleGPW.data.loc[company, 'closing']
-
+                #print(f"data.loc {singleGPW.data.loc['opening']}")
+                values[i] = singleGPW.data.loc[company, 'opening']
+        
         self.values = values
         
         

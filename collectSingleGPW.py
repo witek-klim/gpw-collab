@@ -53,7 +53,7 @@ class CollectSingleGPW():
             return False
         else:
             if self.verbose:
-                print('data correct\n')
+                print('data correct!\n')
             return True
 
     def save2Pickle(self):
