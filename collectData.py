@@ -57,7 +57,7 @@ class CollectData():
             print(f'collecting for {date}, for {company}')
             singleGPW = CollectSingleGPW(date, storePath = self.storepath, verbose = True)
             if singleGPW.checkData():
-                #print(f"data.loc {singleGPW.data.loc['opening']}")
+                print(f"data.loc {singleGPW.data.loc['opening']}")
                 values[i] = singleGPW.data.loc[company, 'opening']
         
         self.values = values
