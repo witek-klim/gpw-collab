@@ -1,14 +1,9 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 import sys
 print(sys.argv, len(sys.argv))
-
-
-company = sys.argv[1]
-
-
-
 
 
 
@@ -23,11 +18,11 @@ def CollectCurrency():
         i+=1
     return data
 
-curr = CollectCurrency()
-print(curr[0:2]['Zamkniecie'])
+#curr = CollectCurrency()
+#print(curr[0]['Zamkniecie'])
 
 def CollectStock():
-    names = ['cdr', 'dnp', company]
+    names = ['cdr', 'dnp']
     columns = ['Data','Zamkniecie']
     date0 = datetime.datetime(2015,1,1)
     data = [None]*len(names)
@@ -49,3 +44,55 @@ def CollectStock():
     plt.legend()
     plt.grid('major', linewidth = .1)
     plt.show()
+
+
+
+
+f =  lambda x: (x-0.5)**2
+x = np.linspace(0,1,4)
+y = f(x)
+
+#plt.plot(x,y)
+#plt.show()
+
+from tensorflow import keras
+
+model = keras.Sequential()
+# activations are: 'sigmoid', 'relu', 'selu', 'softmax', 'sofplus', 'softsign', 'tanh', 'sigmoid', 'hard_sigmoid'
+# 'linear', 'exponential', 'elu'
+activation = 'softmax'
+model.add(keras.layers.Dense(20, input_shape=(1,), activation = activation))
+model.add(keras.layers.Dense(20, activation = activation))
+model.add(keras.layers.Dense(20, activation = activation))
+model.add(keras.layers.Dense(1))
+optimizer = keras.optimizers.RMSprop(0.001)
+
+model.compile(loss='mse',
+                optimizer=optimizer,
+                metrics=['mae', 'mse'])
+
+model.summary()
+EPOCHS = 400
+# history has following keys: 'loss', 'val_loss', 'mean_squared_error', 'val_mean_squared_error'
+history = model.fit( x,y,
+  epochs=EPOCHS, validation_split = 0.2, verbose=0 )
+
+
+xs = np.linspace(0,1,100)
+ys = model.predict(xs)
+plt.plot(x,y,'ko',mfc = 'None', label = 'training data')
+plt.plot(xs, ys,label = 'prediction')
+plt.legend()
+plt.grid('major')
+plt.show()
+
+print(type(history))
+print(history)
+
+plt.plot(history.history['loss'], label='MAE (testing data)')
+plt.plot(history.history['val_loss'], label='MAE (validation data)')
+plt.title('MAE for Chennai Reservoir Levels')
+plt.ylabel('MAE value')
+plt.xlabel('No. epoch')
+plt.legend(loc="upper left")
+plt.show()
