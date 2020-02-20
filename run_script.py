@@ -1,98 +1,115 @@
-import numpy as np
+"""
+functions in this script are used to download data from web for currency and stock history of selected names
+
+"""
+
+
+
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 import sys
 print(sys.argv, len(sys.argv))
 
+import time
+import sys
+
+from sklearn.preprocessing import MinMaxScaler
+
+
+class CollectData():
+    """
+    names: pick either names of currencies or stock companies to collect data for
+    date0: string in format "yyyy-mm-dd"
+
+    attributes are in pandas.DataFrame format:
+        - X: inputs
+        - y: outputs
+    
+    """
+    def __init__(self, names, date0 = None, daten = None, outputs = 1, nyears = 10):
+        print('collecting data')
+        self.names = names
+        self.X = None
+
+        self.daten = datetime.date.today()
+        self.daten_str = self.daten.strftime("%Y%m%d")
+
+        if date0 is None:
+            self.date0 = datetime.date(self.daten.year - nyears, self.daten.month, self.daten.day)
+        else:
+            self.date0 = datetime.datetime.strptime(date0, '%Y-%m-%d')
+        self.date0_str = self.date0.strftime("%Y%m%d")
+
+    def check_data(self):
+        nullsX = self.X.isnull().sum()
+        print(f'null elements in X:\n{nullsX}')
+        
+
+    def plot_data(self, dpi = 100, skip = 10):
+        """
+        skip: use to plot only every skip value from data
+        """
+        from pandas.plotting import register_matplotlib_converters
+        register_matplotlib_converters()
+        i = 1
+        plt.figure(dpi = dpi)
+        for name in self.names:
+            plt.plot(self.X['Data'][::skip], self.X.values[:,i][::skip], label = name)
+            i+=1
+        plt.grid('major', linewidth = 0.1)
+        plt.legend()
+        plt.xlabel('time')
+        plt.ylabel('PLN')
+        plt.show()
 
 
 
-# waluty
-def CollectCurrency():
-    names = ['ars','aud','brl','btc','cad','chf','clp','cny','czk','dkk','egp','gbp','hkd','huf','ils','inr','isk','jpy','krw','mxn','myr','nad','nok','nzd','php','ron','rub','sek','sgd','thb','try','twd','xag','xau','xpd','xpt','zar']
-    i = 0
-    data = [None] * len(names)
-    for name in names:
-        data[i] = pd.read_csv(f'https://stooq.pl/q/l/?s={name}pln&f=sd2t2ohlc&h&e=csv')
-        i+=1
-    return data
+class CollectCurrency(CollectData):
+    """
+    data format from stooq: Data,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie
+    """
 
-#curr = CollectCurrency()
-#print(curr[0]['Zamkniecie'])
+    def __init__(self, names, quantity = 'Zamkniecie', mastercurr = 'pln', date0 = None, daten = None, nyears = 10):
+        super().__init__(names, date0 = date0, daten = daten, nyears = nyears)
+        if names == []:
+            self.names = ['ars','aud','brl','btc','cad','chf','clp','cny','czk','dkk','egp','gbp',
+            'hkd','huf','ils','inr','isk','jpy','krw','mxn','myr','nad','nok','nzd','php',
+            'ron','rub','sek','sgd','thb','try','twd','xag','xau','xpd','xpt','zar']
+        else:
+            self.names = names
 
-def CollectStock():
-    names = ['cdr', 'dnp']
-    columns = ['Data','Zamkniecie']
-    date0 = datetime.datetime(2015,1,1)
-    data = [None]*len(names)
-    i=0
-    for name in names:
-        data[i] = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}&i=d')[columns]
-        j=0
-        for date in data[i]['Data']:
-            data[i]['Data'][j] = datetime.datetime.strptime(date, '%Y-%m-%d')
-            j += 1
-        data[i] = data[i].loc[data[i]['Data'] > date0]
-        print(f'is null {data[i].isnull().sum()}')
-        print(f'number of days {len(data[i].index)}')
-        i+=1
-
-    plt.figure()
-    for i in range(len(names)):
-        plt.plot(data[i]['Data'], data[i]['Zamkniecie'], label = names[i])
-    plt.legend()
-    plt.grid('major', linewidth = .1)
-    plt.show()
+        self.mastercurr = mastercurr
+        self.quantity = quantity
+        self.X = self.collect_currency()
+        
+    def collect_currency(self):
+        i = 0
+        data = [None] * len(self.names)
+        for name in self.names:
+            data[i] = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d')[['Data', quantity]].rename(columns={quantity: name})
+            j=0
+            for d in data[i]['Data']:
+                data[i]['Data'][j] = datetime.datetime.strptime(d, '%Y-%m-%d')
+                j+=1
+            data[i] = data[i].set_index('Data')
+            i+=1
+        data = pd.concat(data, axis = 1).reindex(data[0].index).reset_index()
+        return data
 
 
 
-
-f =  lambda x: (x-0.5)**2
-x = np.linspace(0,1,4)
-y = f(x)
-
-#plt.plot(x,y)
-#plt.show()
-
-from tensorflow import keras
-
-model = keras.Sequential()
-# activations are: 'sigmoid', 'relu', 'selu', 'softmax', 'sofplus', 'softsign', 'tanh', 'sigmoid', 'hard_sigmoid'
-# 'linear', 'exponential', 'elu'
-activation = 'softmax'
-model.add(keras.layers.Dense(20, input_shape=(1,), activation = activation))
-model.add(keras.layers.Dense(20, activation = activation))
-model.add(keras.layers.Dense(20, activation = activation))
-model.add(keras.layers.Dense(1))
-optimizer = keras.optimizers.RMSprop(0.001)
-
-model.compile(loss='mse',
-                optimizer=optimizer,
-                metrics=['mae', 'mse'])
-
-model.summary()
-EPOCHS = 400
-# history has following keys: 'loss', 'val_loss', 'mean_squared_error', 'val_mean_squared_error'
-history = model.fit( x,y,
-  epochs=EPOCHS, validation_split = 0.2, verbose=0 )
+curr = CollectCurrency(names = ['chf', 'usd','eur', 'jpy', 'aud', 'gbp'], nyears = 3)
+#curr.check_data()
+curr.plot_data(dpi = 120)
 
 
-xs = np.linspace(0,1,100)
-ys = model.predict(xs)
-plt.plot(x,y,'ko',mfc = 'None', label = 'training data')
-plt.plot(xs, ys,label = 'prediction')
-plt.legend()
-plt.grid('major')
-plt.show()
+from scipy.stats import pearsonr
+X = curr.X
 
-print(type(history))
-print(history)
-
-plt.plot(history.history['loss'], label='MAE (testing data)')
-plt.plot(history.history['val_loss'], label='MAE (validation data)')
-plt.title('MAE for Chennai Reservoir Levels')
-plt.ylabel('MAE value')
-plt.xlabel('No. epoch')
-plt.legend(loc="upper left")
+import seaborn as sns
+plt.figure()
+cor = X.corr()
+sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
 plt.show()
