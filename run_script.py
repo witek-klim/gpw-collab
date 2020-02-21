@@ -88,7 +88,7 @@ class CollectCurrency(CollectData):
         i = 0
         data = [None] * len(self.names)
         for name in self.names:
-            data[i] = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d')[['Data', quantity]].rename(columns={quantity: name})
+            data[i] = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d')[['Data', self.quantity]].rename(columns={self.quantity: name})
             j=0
             for d in data[i]['Data']:
                 data[i]['Data'][j] = datetime.datetime.strptime(d, '%Y-%m-%d')
@@ -113,3 +113,7 @@ plt.figure()
 cor = X.corr()
 sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
 plt.show()
+
+
+
+
