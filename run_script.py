@@ -46,9 +46,6 @@ class CollectData():
     def plot_data(self, dpi = 100, skip = 10):
         """
         skip: use to plot only every skip value from data
-
-        to do:
-            - only works when 'Data' is the last column
         """
         from pandas.plotting import register_matplotlib_converters
         register_matplotlib_converters()
@@ -64,26 +61,31 @@ class CollectData():
         think about better name for this function
         it is supposed to calculate relative change e.g. day to day instead of quoting the absolute value
         """
-        df = self.X
-        temp = pd.DataFrame()
-        for name in self.names:
-            temp[name] = np.append(0, self.X[name].values[1:]) - np.append(0, self.X[name].values[:-1])
-        self.X = temp
+        self.X = self.X.diff(period)
+        # df = self.X
+        # temp = pd.DataFrame()
+        # for name in self.names:
+        #     temp[name] = np.append(0, self.X[name].values[1:]) - np.append(0, self.X[name].values[:-1])
+        # self.X = temp
 
 class CollectCurrency(CollectData):
     """
     data format from stooq: [Data,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie]
     """
 
-    def __init__(self, names, quantity = 'Zamkniecie', mastercurr = 'pln', date0 = None, daten = None, nyears = 10):
+    def __init__(self, names, quantity = 'Zamkniecie', mastercurr = 'pln', date0 = None, daten = None,
+                                 nyears = 10, datapath = '/home/witek/Documents/gpw-collab/data'):
         super().__init__(names, date0 = date0, daten = daten, nyears = nyears)
+
+
         if names == []:
             self.names = ['ars','aud','brl','btc','cad','chf','clp','cny','czk','dkk','egp','gbp',
             'hkd','huf','ils','inr','isk','jpy','krw','mxn','myr','nad','nok','nzd','php',
             'ron','rub','sek','sgd','thb','try','twd','xag','xau','xpd','xpt','zar']
         else:
             self.names = names
-
+        print(datapath)
+        self.datapath = datapath
         self.mastercurr = mastercurr
         self.quantity = quantity
         self.X = self.collect_currency()
@@ -91,18 +93,18 @@ class CollectCurrency(CollectData):
     def collect_currency(self):
         data = []
         for name in self.names:
-            
             try:
-                filename = f'data/currency_{name}_{self.date0_str}_{self.daten_str}'
-                temp = pd.read_csv(filename)
+                filename = f'{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
+                temp = pd.read_csv(filename)[['Data', name]]
+                #temp = temp
             except FileNotFoundError:
                 temp = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d',
-                                    infer_datetime_format = True
-                                            )[['Data', self.quantity]].rename(columns={self.quantity: name})
-                temp.to_csv(filename)
+                                    infer_datetime_format = True)[['Data', self.quantity]].rename(columns={self.quantity: name})
+                temp[name].to_csv(filename)
             # for j, day in enumerate(temp['Data']):
             #     temp['Data'][j] = datetime.datetime.strptime(day, '%Y-%m-%d')
             temp = temp.set_index('Data')
+            print(temp)
             data.append(temp)
         return pd.concat(data, axis = 1).reindex(data[0].index)#.reset_index()
 
@@ -112,8 +114,11 @@ class CollectCurrency(CollectData):
 #curr = CollectCurrency()
 #print(curr[0:2]['Zamkniecie'])
 class CollecStock(CollectData):
-    def __init__(self, names, quantity = 'Zamkniecie', date0 = None, daten = None, nyears = 10):
+    def __init__(self, names, quantity = 'Zamkniecie', date0 = None, daten = None,
+                        nyears = 10, datapath = '/home/witek/Documents/gpw-collab/data'):
         super().__init__(names, date0 = date0, daten = daten, nyears = nyears)
+        self.datapath = datapath
+        self.quantity = quantity
 
     def collect_stock(self):
         names = ['cdr', 'dnp']
@@ -134,25 +139,9 @@ class CollecStock(CollectData):
             i+=1
 
 
+if __name__ == "__main__":
+    curr = CollectCurrency(names = ['chf', 'usd','eur', 'jpy', 'aud', 'gbp'], nyears = 5)
+    curr.find_change()
 
-curr = CollectCurrency(names = ['chf', 'usd','eur', 'jpy', 'aud', 'gbp'], nyears = 5)
-curr.find_change()
-curr.plot_data(dpi = 120, skip = 1)
-
-from scipy.stats import pearsonr
-X = curr.X
-import seaborn as sns
-cor = curr.X.corr()
-f, ax = plt.subplots(figsize=(11, 9))
-sns.heatmap(cor, annot=True, vmax=.99, center=0,
-            square=True, linewidths=.5, ax = ax)
-plt.tight_layout()
-b, t = plt.ylim() # discover the values for bottom and top
-b += 0.5 # Add 0.5 to the bottom
-t -= 0.5 # Subtract 0.5 from the top
-plt.ylim(b, t) # update the ylim(bottom, top) values
-plt.show()
-
-#curr.check_data()
 
 
