@@ -10,6 +10,7 @@ import sys
 print(sys.argv, len(sys.argv))
 import numpy as np
 import time
+import os
 
 
 from sklearn.preprocessing import MinMaxScaler
@@ -62,11 +63,7 @@ class CollectData():
         it is supposed to calculate relative change e.g. day to day instead of quoting the absolute value
         """
         self.X = self.X.diff(period)
-        # df = self.X
-        # temp = pd.DataFrame()
-        # for name in self.names:
-        #     temp[name] = np.append(0, self.X[name].values[1:]) - np.append(0, self.X[name].values[:-1])
-        # self.X = temp
+
 
 class CollectCurrency(CollectData):
     """
@@ -74,7 +71,7 @@ class CollectCurrency(CollectData):
     """
 
     def __init__(self, names, quantity = 'Zamkniecie', mastercurr = 'pln', date0 = None, daten = None,
-                                 nyears = 10, datapath = '/home/witek/Documents/gpw-collab/data'):
+                                 nyears = 10, datapath = 'data'):
         super().__init__(names, date0 = date0, daten = daten, nyears = nyears)
 
 
@@ -94,17 +91,17 @@ class CollectCurrency(CollectData):
         data = []
         for name in self.names:
             try:
-                filename = f'{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
-                temp = pd.read_csv(filename)[['Data', name]]
+                cwd = os.getcwd()
+                filename = f'{cwd}/{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
+                temp = pd.read_csv(filename)
+                print(temp)
                 #temp = temp
             except FileNotFoundError:
                 temp = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d',
-                                    infer_datetime_format = True)[['Data', self.quantity]].rename(columns={self.quantity: name})
-                temp[name].to_csv(filename)
-            # for j, day in enumerate(temp['Data']):
-            #     temp['Data'][j] = datetime.datetime.strptime(day, '%Y-%m-%d')
-            temp = temp.set_index('Data')
-            print(temp)
+                                    infer_datetime_format = True).rename(columns={self.quantity: name})
+                temp = temp.set_index('Data')[name]
+                temp.to_csv(filename)
+                
             data.append(temp)
         return pd.concat(data, axis = 1).reindex(data[0].index)#.reset_index()
 
@@ -140,7 +137,7 @@ class CollecStock(CollectData):
 
 
 if __name__ == "__main__":
-    curr = CollectCurrency(names = ['chf', 'usd','eur', 'jpy', 'aud', 'gbp'], nyears = 5)
+    curr = CollectCurrency(names = ['chf', 'usd','eur', 'gbp'], nyears = 5)
     curr.find_change()
 
 
