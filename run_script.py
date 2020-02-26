@@ -81,7 +81,6 @@ class CollectCurrency(CollectData):
             'ron','rub','sek','sgd','thb','try','twd','xag','xau','xpd','xpt','zar']
         else:
             self.names = names
-        print(datapath)
         self.datapath = datapath
         self.mastercurr = mastercurr
         self.quantity = quantity
@@ -93,15 +92,12 @@ class CollectCurrency(CollectData):
             try:
                 cwd = os.getcwd()
                 filename = f'{cwd}/{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
-                temp = pd.read_csv(filename)
-                print(temp)
-                #temp = temp
+                temp = pd.read_csv(filename).set_index('Data')
             except FileNotFoundError:
                 temp = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d',
                                     infer_datetime_format = True).rename(columns={self.quantity: name})
                 temp = temp.set_index('Data')[name]
                 temp.to_csv(filename)
-                
             data.append(temp)
         return pd.concat(data, axis = 1).reindex(data[0].index)#.reset_index()
 
@@ -138,7 +134,5 @@ class CollecStock(CollectData):
 
 if __name__ == "__main__":
     curr = CollectCurrency(names = ['chf', 'usd','eur', 'gbp'], nyears = 5)
-    curr.find_change()
-
 
 
