@@ -30,13 +30,27 @@ class CollectData():
         print('collecting data')
         self.names = names
         self.X = None
+        self.find_dates(date0, daten, nyears)
 
-        self.daten = datetime.date.today()
+    def find_dates(self, date0, daten, nyears):
+        """
+        """
+
+        if daten is None:
+            print('no end date is provided: use current date')
+            self.daten = datetime.date.today()
+            self.daten = datetime.date(self.daten.year, self.daten.month, self.daten.day)
+        else:
+            print(f'provided end date: {daten}')
+            self.daten = datetime.datetime.strptime(daten, '%Y-%m-%d')
         self.daten_str = self.daten.strftime("%Y%m%d")
+        print(f'date used: {self.daten}')
 
         if date0 is None:
+            print(f'no starting data is provided: use {nyears} years')
             self.date0 = datetime.date(self.daten.year - nyears, self.daten.month, self.daten.day)
         else:
+            print(f'provided start date: {date0}')
             self.date0 = datetime.datetime.strptime(date0, '%Y-%m-%d')
         self.date0_str = self.date0.strftime("%Y%m%d")
 
@@ -57,7 +71,7 @@ class CollectData():
         plt.xlabel('time')
         plt.show()
 
-    def find_change(self, period = 1):
+    def find_change(self, period : 'defines shift in data for LSTM net' = 1):
         """
         think about better name for this function
         it is supposed to calculate relative change e.g. day to day instead of quoting the absolute value
@@ -89,15 +103,20 @@ class CollectCurrency(CollectData):
     def collect_currency(self):
         data = []
         for name in self.names:
+            cwd = os.getcwd()
+            filename = f'{cwd}/{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
             try:
-                cwd = os.getcwd()
-                filename = f'{cwd}/{self.datapath}/currency_{name}_{self.date0_str}_{self.daten_str}'
-                temp = pd.read_csv(filename).set_index('Data')
+                print('collecting data from file')
+                print(filename)
+                temp = pd.read_csv(filename)[['Data', name]].set_index('Data')
             except FileNotFoundError:
+                print('no data in folder: collecting data from web')
                 temp = pd.read_csv(f'https://stooq.pl/q/d/l/?s={name}{self.mastercurr}&d1={self.date0_str}&d2={self.daten_str}&i=d',
                                     infer_datetime_format = True).rename(columns={self.quantity: name})
-                temp = temp.set_index('Data')[name]
+                print(temp)
+                temp = temp[['Data', name]]
                 temp.to_csv(filename)
+                temp = temp.set_index('Data')
             data.append(temp)
         return pd.concat(data, axis = 1).reindex(data[0].index)#.reset_index()
 
@@ -133,6 +152,5 @@ class CollecStock(CollectData):
 
 
 if __name__ == "__main__":
-    curr = CollectCurrency(names = ['chf', 'usd','eur', 'gbp'], nyears = 5)
-
+    curr = CollectCurrency(names = ['chf', 'usd','eur', 'gbp'], nyears = 4)
 
